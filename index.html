@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cyber Escape Room: The Breach Protocol</title>
+  <meta name="description" content="A browser-based cybersecurity puzzle game. Solve security challenges, trace the hacker, and stop the breach before time runs out!" />
+  <meta name="keywords" content="cybersecurity game, escape room, hacking puzzle, browser game, security training" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- MATRIX RAIN CANVAS -->
+<canvas id="matrixCanvas"></canvas>
+
+<!-- SCANLINE OVERLAY -->
+<div class="scanline"></div>
+
+<!-- GLITCH OVERLAY -->
+<div class="glitch-overlay" id="glitchOverlay"></div>
+
+<!-- ===== INTRO SCREEN ===== -->
+<div id="introScreen" class="screen active">
+  <div class="intro-container">
+    <div class="logo-glitch" data-text="BREACH PROTOCOL">BREACH PROTOCOL</div>
+    <div class="subtitle">CYBER ESCAPE ROOM — 2030</div>
+    <div class="intro-story">
+      <div class="terminal-box">
+        <div class="terminal-header">
+          <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+          <span class="terminal-title">INCOMING TRANSMISSION — ENCRYPTED</span>
+        </div>
+        <div class="terminal-body" id="storyText"></div>
+      </div>
+    </div>
+    <div class="intro-stats">
+      <div class="stat-card"><div class="stat-num">10</div><div class="stat-label">LEVELS</div></div>
+      <div class="stat-card"><div class="stat-num">5</div><div class="stat-label">MINI GAMES</div></div>
+      <div class="stat-card"><div class="stat-num">60</div><div class="stat-label">MINUTES</div></div>
+    </div>
+    <button class="btn-primary" id="startBtn">▶ INITIATE BREACH PROTOCOL</button>
+    <button class="btn-secondary" id="continueBtn" style="display:none">⟳ CONTINUE MISSION</button>
+    <div class="version-tag">v2.0.30 | SHADOWNET DIVISION</div>
+  </div>
+</div>
+
+<!-- ===== HUD (shown during gameplay) ===== -->
+<div id="hud" class="hud hidden">
+  <div class="hud-left">
+    <div class="hud-logo">⬡ BREACH<span>PROTOCOL</span></div>
+    <div class="level-indicator">
+      <span class="level-label">LEVEL</span>
+      <span class="level-num" id="hudLevel">1</span>
+      <span class="level-name" id="hudLevelName">PASSWORD VAULT</span>
+    </div>
+  </div>
+  <div class="hud-center">
+    <div class="timer-display">
+      <div class="timer-label">TIME REMAINING</div>
+      <div class="timer-value" id="timerDisplay">60:00</div>
+      <div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+    </div>
+  </div>
+  <div class="hud-right">
+    <div class="score-display">
+      <div class="score-label">SCORE</div>
+      <div class="score-value" id="hudScore">0</div>
+    </div>
+    <div class="clues-collected">
+      <div class="clues-label">CLUES</div>
+      <div class="clues-value" id="hudClues">0/4</div>
+    </div>
+    <button class="btn-icon" id="menuBtn" title="Menu">☰</button>
+  </div>
+</div>
+
+<!-- LEVEL PROGRESS BAR -->
+<div id="levelProgress" class="level-progress hidden">
+  <div class="progress-stages" id="progressStages"></div>
+</div>
+
+<!-- ===== MAIN GAME AREA ===== -->
+<div id="gameArea" class="game-area hidden">
+
+  <!-- ===== LEVEL MAP / NAVIGATION ===== -->
+  <div id="levelMap" class="level-map hidden">
+    <h2 class="map-title">⬡ NETWORK MAP — CORPORATE INTRANET</h2>
+    <div class="map-subtitle">Navigate through compromised network segments</div>
+    <div class="network-grid" id="networkGrid"></div>
+    <div class="map-footer">
+      <button class="btn-secondary" id="bonusBtn">🎮 BONUS MINI-GAMES</button>
+    </div>
+  </div>
+
+  <!-- ===== LEVEL CONTAINER ===== -->
+  <div id="levelContainer" class="level-container hidden">
+
+    <!-- LEVEL HEADER -->
+    <div class="level-header">
+      <button class="btn-back" id="backToMap">← NETWORK MAP</button>
+      <div class="level-info">
+        <div class="level-badge" id="levelBadge">01</div>
+        <div class="level-text">
+          <div class="level-title" id="levelTitle">PASSWORD VAULT</div>
+          <div class="level-desc" id="levelDesc">Security clearance required</div>
+        </div>
+      </div>
+      <div class="level-meta">
+        <div class="attempts-badge">ATTEMPTS: <span id="attemptsDisplay">0</span></div>
+      </div>
+    </div>
+
+    <!-- LEVEL CONTENT (injected by JS) -->
+    <div id="levelContent" class="level-content"></div>
+
+    <!-- CLUE REVEAL (shown on level complete) -->
+    <div id="clueReveal" class="clue-reveal hidden">
+      <div class="clue-box">
+        <div class="clue-title">🔍 CLUE UNLOCKED</div>
+        <div class="clue-text" id="clueText"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== BONUS MINI-GAMES ===== -->
+  <div id="bonusArea" class="bonus-area hidden">
+    <div class="bonus-header">
+      <button class="btn-back" id="backFromBonus">← NETWORK MAP</button>
+      <h2>🎮 BONUS MINI-GAMES</h2>
+    </div>
+    <div class="bonus-grid" id="bonusGrid"></div>
+    <div id="bonusGameContainer" class="bonus-game-container hidden"></div>
+  </div>
+
+</div>
+
+<!-- ===== FINAL BOSS SCREEN ===== -->
+<div id="finalBossScreen" class="screen hidden">
+  <div class="boss-container">
+    <div class="boss-header">
+      <div class="boss-title glitch-text" data-text="TRACE THE HACKER">TRACE THE HACKER</div>
+      <div class="boss-subtitle">Combine all collected clues to identify the attacker</div>
+    </div>
+    <div class="clues-board" id="cluesBoard"></div>
+    <div class="boss-input-area">
+      <div class="input-group">
+        <label>ATTACKER IP ADDRESS</label>
+        <input type="text" id="bossIP" placeholder="e.g. 203.0.113.45" maxlength="15" />
+      </div>
+      <div class="input-group">
+        <label>ATTACKER ALIAS</label>
+        <input type="text" id="bossAlias" placeholder="e.g. SHADOWFOX" maxlength="20" />
+      </div>
+    </div>
+    <button class="btn-boss" id="traceBtn">⚡ TRACE ATTACKER</button>
+    <div class="boss-feedback" id="bossFeedback"></div>
+  </div>
+</div>
+
+<!-- ===== WIN SCREEN ===== -->
+<div id="winScreen" class="screen hidden">
+  <div class="win-container">
+    <div class="win-particles" id="winParticles"></div>
+    <div class="win-title">BREACH CONTAINED</div>
+    <div class="win-subtitle">ACCESS RESTORED</div>
+    <div class="win-message">MISSION SUCCESSFUL</div>
+    <div class="win-stats" id="winStats"></div>
+    <div class="win-report" id="winReport"></div>
+    <button class="btn-primary" id="playAgainBtn">⟳ NEW MISSION</button>
+  </div>
+</div>
+
+<!-- ===== PAUSE MENU ===== -->
+<div id="pauseMenu" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">⏸ MISSION PAUSED</div>
+    <div class="modal-body">
+      <button class="btn-primary" id="resumeBtn">▶ RESUME MISSION</button>
+      <button class="btn-secondary" id="restartBtn">⟳ RESTART</button>
+      <button class="btn-danger" id="quitBtn">✕ QUIT TO MENU</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LEVEL COMPLETE MODAL ===== -->
+<div id="levelCompleteModal" class="modal-overlay hidden">
+  <div class="modal modal-success">
+    <div class="modal-icon">✓</div>
+    <div class="modal-title" id="levelCompleteTitle">LEVEL COMPLETE</div>
+    <div class="modal-score" id="levelCompleteScore"></div>
+    <div class="modal-clue" id="levelCompleteClue"></div>
+    <button class="btn-primary" id="nextLevelBtn">NEXT LEVEL →</button>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
